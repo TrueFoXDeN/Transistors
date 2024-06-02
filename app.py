@@ -66,12 +66,12 @@ def iterative_dfs(start_node):
 if __name__ == '__main__':
     inputs = {'A': False, 'B': True, 'C': True}
     vdd = Knoten('VDD', KnotenTyp.VDD)
-    #NAND 1
+    # NAND 1
     t1 = Knoten('T1', KnotenTyp.PMOS, gate='A')
     t2 = Knoten('T2', KnotenTyp.PMOS, gate='B')
     t3 = Knoten('T3', KnotenTyp.NMOS, gate='A')
     t4 = Knoten('T4', KnotenTyp.NMOS, gate='B')
-    #NAND 2
+    # NAND 2
     t5 = Knoten('T5', KnotenTyp.PMOS, gate='A')
     t6 = Knoten('T6', KnotenTyp.PMOS, gate='C')
     t7 = Knoten('T7', KnotenTyp.NMOS, gate='A')
@@ -91,6 +91,7 @@ if __name__ == '__main__':
     add_knoten_to_graph(t7)
     add_knoten_to_graph(t8)
     add_knoten_to_graph(out1)
+    add_knoten_to_graph(out2)
     add_knoten_to_graph(gnd)
 
     add_edge(vdd, t1)
@@ -169,9 +170,9 @@ if __name__ == '__main__':
     nx.draw_networkx_labels(G, pos, ax=ax, font_size=11, font_color='black')
 
     # Füge die Input-Labels hinzu
-    input_pos = {node: (x - 4, y - 1) for (node, (x, y)) in
+    input_pos = {node: (x, y - 10) for (node, (x, y)) in
                  pos.items()}  # Positioniere die Labels leicht unterhalb der Knoten
-    nx.draw_networkx_labels(G, input_pos, labels=node_labels, ax=ax, font_size=11, font_color='blue')
+    nx.draw_networkx_labels(G, input_pos, labels=node_labels, ax=ax, font_size=8, font_color='blue')
 
     plt.box(False)
     plt.show()
