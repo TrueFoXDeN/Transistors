@@ -20,10 +20,10 @@ class KnotenTyp(Enum):
 class Knoten:
     name: str
     knoten_typ: KnotenTyp
-    gate: bool = False
+    gate: str = ''
 
     def __hash__(self):
-        return hash(self.name + str(self.knoten_typ) + str(self.gate))
+        return hash(self.name + str(self.knoten_typ) + self.gate)
 
 
 # Für jeden Knoten
@@ -41,11 +41,11 @@ if __name__ == '__main__':
     inputs = {'A': True, 'B': False, 'C': True}
 
     vdd = Knoten('VDD', KnotenTyp.VDD)
-    t1 = Knoten('T1', KnotenTyp.PMOS, gate=inputs['A'])
-    t2 = Knoten('T2', KnotenTyp.PMOS, gate=inputs['B'])
-    t3 = Knoten('T3', KnotenTyp.NMOS, gate=inputs['A'])
-    t4 = Knoten('T4', KnotenTyp.NMOS, gate=inputs['B'])
-    out = Knoten('Out', KnotenTyp.OUTPUT)
+    t1 = Knoten('T1', KnotenTyp.PMOS, gate='A')
+    t2 = Knoten('T2', KnotenTyp.PMOS, gate='B')
+    t3 = Knoten('T3', KnotenTyp.NMOS, gate='A')
+    t4 = Knoten('T4', KnotenTyp.NMOS, gate='B')
+    out = Knoten('OUT', KnotenTyp.OUTPUT)
     gnd = Knoten('GND', KnotenTyp.GND)
 
     add_edge(vdd, t1)
@@ -69,17 +69,19 @@ if __name__ == '__main__':
     # Bestimme die Farben und Formen der Knoten basierend auf dem Gate-Wert
     node_colors = {}
     node_shapes = {}
+    node_labels = {}
     for node in G.nodes():
         for knoten in graph.keys():
             if knoten.name == node:
                 if knoten.knoten_typ in [KnotenTyp.PMOS, KnotenTyp.NMOS]:
-                    color = 'green' if knoten.gate else 'red'
+                    color = 'green' if inputs[knoten.gate] else 'red'
                     shape = '8' if knoten.knoten_typ == KnotenTyp.PMOS else 'o'
                 else:
                     color = 'skyblue'
                     shape = 'o'
                 node_colors[node] = color
                 node_shapes[node] = shape
+                node_labels[node] = knoten.gate
                 break
 
     edge_colors = []
@@ -90,14 +92,13 @@ if __name__ == '__main__':
         else:
             for knoten in graph.keys():
                 if knoten.name == start_node:
-                    if ((knoten.knoten_typ == KnotenTyp.PMOS and not knoten.gate) or
-                            (knoten.knoten_typ == KnotenTyp.NMOS and knoten.gate)):
+                    if ((knoten.knoten_typ == KnotenTyp.PMOS and not inputs[knoten.gate]) or
+                            (knoten.knoten_typ == KnotenTyp.NMOS and inputs[knoten.gate])):
                         edge_colors.append('green')
                     else:
                         edge_colors.append('gray')
                     break
 
-    input_labels = {'T1': 'A', 'T2': 'B', 'T3': 'A', 'T4': 'B'}
     fig, ax = plt.subplots()
 
     # Zeichne die Knoten und Kanten basierend auf ihren Eigenschaften
@@ -111,7 +112,9 @@ if __name__ == '__main__':
     nx.draw_networkx_labels(G, pos, ax=ax, font_size=11, font_color='black')
 
     # Füge die Input-Labels hinzu
-    input_pos = {node: (x-4, y-1) for (node, (x, y)) in pos.items()}  # Positioniere die Labels leicht unterhalb der Knoten
-    nx.draw_networkx_labels(G, input_pos, labels=input_labels, ax=ax, font_size=11, font_color='blue')
+    input_pos = {node: (x - 4, y - 1) for (node, (x, y)) in
+                 pos.items()}  # Positioniere die Labels leicht unterhalb der Knoten
+    nx.draw_networkx_labels(G, input_pos, labels=node_labels, ax=ax, font_size=11, font_color='blue')
 
+    plt.box(False)
     plt.show()
