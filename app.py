@@ -1,6 +1,5 @@
 import networkx as nx
 import matplotlib.pyplot as plt
-import pydot
 from networkx.drawing.nx_pydot import graphviz_layout
 
 from dataclasses import dataclass
@@ -65,6 +64,9 @@ if __name__ == '__main__':
         for nachbar in nachbarn:
             G.add_edge(knoten.name, nachbar.name)
 
+    pos = graphviz_layout(G, prog='dot')
+
+    # Bestimme die Farben und Formen der Knoten basierend auf dem Gate-Wert
     node_colors = {}
     node_shapes = {}
     for node in G.nodes():
@@ -95,18 +97,21 @@ if __name__ == '__main__':
                         edge_colors.append('gray')
                     break
 
-    # pos = graphviz_layout(G, prog='dot')
-    # nx.draw(G, pos, with_labels=True, node_size=700, node_color=node_colors, font_size=11, font_color='black',
-    #         font_weight='normal', edge_color=edge_colors)
-    pos = graphviz_layout(G, prog='dot')
+    input_labels = {'T1': 'A', 'T2': 'B', 'T3': 'A', 'T4': 'B'}
+    fig, ax = plt.subplots()
 
+    # Zeichne die Knoten und Kanten basierend auf ihren Eigenschaften
     for shape in set(node_shapes.values()):
         nodes_with_shape = [node for node, s in node_shapes.items() if s == shape]
         colors = [node_colors[node] for node in nodes_with_shape]
-        nx.draw_networkx_nodes(G, pos, nodelist=nodes_with_shape,alpha=0.4, node_color=colors, node_shape=shape, node_size=700)
+        nx.draw_networkx_nodes(G, pos, ax=ax, nodelist=nodes_with_shape,
+                               node_color=colors, node_shape=shape, alpha=0.4, node_size=500)
 
-    nx.draw_networkx_edges(G, pos, edge_color=edge_colors)
-    nx.draw_networkx_labels(G, pos, font_size=11, font_color='black')
+    nx.draw_networkx_edges(G, pos, ax=ax, edge_color=edge_colors, arrows=True)
+    nx.draw_networkx_labels(G, pos, ax=ax, font_size=11, font_color='black')
 
-    # Zeige den Graphen
+    # Füge die Input-Labels hinzu
+    input_pos = {node: (x-4, y-1) for (node, (x, y)) in pos.items()}  # Positioniere die Labels leicht unterhalb der Knoten
+    nx.draw_networkx_labels(G, input_pos, labels=input_labels, ax=ax, font_size=11, font_color='blue')
+
     plt.show()
