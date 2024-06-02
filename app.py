@@ -1,6 +1,9 @@
 import networkx as nx
 import matplotlib.pyplot as plt
 from networkx.drawing.nx_pydot import graphviz_layout
+import pprint
+
+pp = pprint.PrettyPrinter(indent=4)
 
 from dataclasses import dataclass
 from enum import Enum
@@ -29,33 +32,87 @@ class Knoten:
 # Für jeden Knoten
 
 def add_edge(knoten1: Knoten, knoten2: Knoten):
-    if knoten1 not in graph:
-        graph[knoten1] = []
-    if knoten2 not in graph:
-        graph[knoten2] = []
+    # if knoten1 not in graph:
+    #     graph[knoten1] = []
+    # if knoten2 not in graph:
+    #     graph[knoten2] = []
 
     graph[knoten1].append(knoten2)
 
 
-if __name__ == '__main__':
-    inputs = {'A': True, 'B': False, 'C': True}
+def add_knoten_to_graph(knoten: Knoten):
+    graph[knoten] = []
 
+
+def iterative_dfs(start_node):
+    visited = set()
+    outputs = set()
+    stack = [start_node]
+    while stack:
+        node = stack.pop()
+        if node not in visited:
+            visited.add(node)
+            if node.knoten_typ == KnotenTyp.PMOS and not inputs[node.gate]:
+                stack.extend(neighbor for neighbor in graph[node] if neighbor not in visited)
+            elif node.knoten_typ == KnotenTyp.NMOS and inputs[node.gate]:
+                stack.extend(neighbor for neighbor in graph[node] if neighbor not in visited)
+            elif node.knoten_typ == KnotenTyp.OUTPUT:
+                outputs.add(node)
+            elif node.knoten_typ == KnotenTyp.VDD:
+                stack.extend(neighbor for neighbor in graph[node] if neighbor not in visited)
+    return visited, outputs
+
+
+if __name__ == '__main__':
+    inputs = {'A': False, 'B': True, 'C': True}
     vdd = Knoten('VDD', KnotenTyp.VDD)
+    #NAND 1
     t1 = Knoten('T1', KnotenTyp.PMOS, gate='A')
     t2 = Knoten('T2', KnotenTyp.PMOS, gate='B')
     t3 = Knoten('T3', KnotenTyp.NMOS, gate='A')
     t4 = Knoten('T4', KnotenTyp.NMOS, gate='B')
-    out = Knoten('OUT', KnotenTyp.OUTPUT)
+    #NAND 2
+    t5 = Knoten('T5', KnotenTyp.PMOS, gate='A')
+    t6 = Knoten('T6', KnotenTyp.PMOS, gate='C')
+    t7 = Knoten('T7', KnotenTyp.NMOS, gate='A')
+    t8 = Knoten('T8', KnotenTyp.NMOS, gate='C')
+
+    out1 = Knoten('OUT1', KnotenTyp.OUTPUT)
+    out2 = Knoten('OUT2', KnotenTyp.OUTPUT)
     gnd = Knoten('GND', KnotenTyp.GND)
+
+    add_knoten_to_graph(vdd)
+    add_knoten_to_graph(t1)
+    add_knoten_to_graph(t2)
+    add_knoten_to_graph(t3)
+    add_knoten_to_graph(t4)
+    add_knoten_to_graph(t5)
+    add_knoten_to_graph(t6)
+    add_knoten_to_graph(t7)
+    add_knoten_to_graph(t8)
+    add_knoten_to_graph(out1)
+    add_knoten_to_graph(gnd)
 
     add_edge(vdd, t1)
     add_edge(vdd, t2)
     add_edge(t1, t3)
     add_edge(t2, t3)
-    add_edge(t1, out)
-    add_edge(t2, out)
+    add_edge(t1, out1)
+    add_edge(t2, out1)
     add_edge(t3, t4)
+    add_edge(vdd, t5)
+    add_edge(vdd, t6)
+    add_edge(t5, t7)
+    add_edge(t6, t7)
+    add_edge(t7, t8)
+    add_edge(t8, gnd)
+    add_edge(t5, out2)
+    add_edge(t6, out2)
+
     add_edge(t4, gnd)
+
+    visited, outputs = iterative_dfs(vdd)
+    print(outputs)
 
     G = nx.MultiDiGraph()
 
